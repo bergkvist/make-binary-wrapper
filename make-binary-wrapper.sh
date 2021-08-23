@@ -75,8 +75,9 @@ makeCWrapper() {
     done
     [ -z ${flagsBefore+"1"} ] || {
         flagsBefore=("$flagsBefore")
-        main="$main"$'\n'$(includeFlags $flagsBefore)$'\n'$'\n'
+        main="$main"$'\n'$(addFlags $flagsBefore)$'\n'$'\n'
     }
+
     [ -z ${argv0+"1"} ] || {
         main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
     }
@@ -93,7 +94,7 @@ makeCWrapper() {
     printf "%s" "}"
 }
 
-includeFlags() {
+addFlags() {
     local result n flag flags
     local var="argv_tmp"
     flags=("$@")
