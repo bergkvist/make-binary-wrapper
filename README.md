@@ -1,4 +1,4 @@
-# Generate tiny compiled binary for wrapping executables
+# Tiny compiled binary for wrapping executables
 
 ## Getting started
 Make sure you are using bash. The script will not behave correctly if you are using zsh (or other shell variants).
