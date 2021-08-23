@@ -186,6 +186,7 @@ setEnvPrefixFn() {
     printf "%s\n" '    char *existing = getenv(env);'
     printf "%s\n" '    if (existing) val = concat3(val, sep, existing);'
     printf "%s\n" '    setenv(env, val, 1);'
+    printf "%s\n" '    if (existing) free(val);'
     printf "%s\n" '}'
 }
 
@@ -194,5 +195,6 @@ setEnvSuffixFn() {
     printf "%s\n" '    char *existing = getenv(env);'
     printf "%s\n" '    if (existing) val = concat3(existing, sep, val);'
     printf "%s\n" '    setenv(env, val, 1);'
+    printf "%s\n" '    if (existing) free(val);'
     printf "%s\n" '}'
 }
