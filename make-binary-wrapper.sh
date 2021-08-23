@@ -14,7 +14,7 @@
 # To troubleshoot a binary wrapper after you compiled it,
 # use the `strings` command or open the binary file in a text editor.
 makeBinaryWrapper() {
-    makeDocumentedCWrapper "$1" "${@:3}" | gcc -x c -o "$2" -
+    makeDocumentedCWrapper "$1" "${@:3}" | gcc -Os -x c -o "$2" -
 }
 
 # Generate source code for the wrapper in such a way that the wrapper source code
