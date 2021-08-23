@@ -31,28 +31,36 @@ makeDocumentedCWrapper() {
 # makeCWrapper EXECUTABLE ARGS
 # ARGS: same as makeBinaryWrapper
 makeCWrapper() {
-    local argv0 n params cmd
+    local argv0 n params cmd main flagsBefore flags
     local executable=$(escapeStringLiteral "$1")
     local params=("$@")
-
-    printf "%s\n" "#include <unistd.h>"
-    printf "%s\n" "#include <stdlib.h>"
-    printf "\n%s\n" "int main(int argc, char **argv) {"
-
+    
     for ((n = 1; n < ${#params[*]}; n += 1)); do
         p="${params[$n]}"
         if [[ "$p" == "--set" ]]; then
             cmd=$(setEnv "${params[$((n + 1))]}" "${params[$((n + 2))]}")
+            main="$main    $cmd"$'\n'
             n=$((n + 2))
-            printf "%s\n" "    $cmd"
         elif [[ "$p" == "--set-default" ]]; then
             cmd=$(setDefaultEnv "${params[$((n + 1))]}" "${params[$((n + 2))]}")
+            main="$main    $cmd"$'\n'
             n=$((n + 2))
-            printf "%s\n" "    $cmd"
         elif [[ "$p" == "--unset" ]]; then
             cmd=$(unsetEnv "${params[$((n + 1))]}")
-            printf "%s\n" "    $cmd"
+            main="$main    $cmd"$'\n'
             n=$((n + 1))
+        elif [[ "$p" == "--prefix" ]]; then
+            cmd=$(setEnvPrefix "${params[$((n + 1))]}" "${params[$((n + 2))]}" "${params[$((n + 3))]}")
+            main="$main    $cmd"$'\n'
+            uses_prefix=1
+            uses_concat3=1
+            n=$((n + 3))
+        elif [[ "$p" == "--suffix" ]]; then
+            cmd=$(setEnvSuffix "${params[$((n + 1))]}" "${params[$((n + 2))]}" "${params[$((n + 3))]}")
+            main="$main    $cmd"$'\n'
+            uses_suffix=1
+            uses_concat3=1
+            n=$((n + 3))
         elif [[ "$p" == "--argv0" ]]; then
             argv0=$(escapeStringLiteral "${params[$((n + 1))]}")
             n=$((n + 1))
@@ -61,17 +69,43 @@ makeCWrapper() {
             printf "%s\n" "    #error makeCWrapper did not understand argument ${p}"
         fi
     done
+    [ -z ${argv0+"1"} ] || {
+        main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
+    }
 
-    printf "%s\n" "    argv[0] = \"${argv0:-${executable}}\";"
-    printf "%s\n" "    return execv(\"${executable}\", argv);"
-    printf "%s\n" "}"
+    main="$main    return execv(\"${executable}\", argv);"$'\n'
+
+    printf "%s\n" "#include <unistd.h>"
+    printf "%s\n" "#include <stdlib.h>"
+    [ -z "$uses_concat3" ] || printf "\n%s\n" "$(concat3Fn)"
+    [ -z "$uses_prefix" ]  || printf "\n%s\n" "$(setEnvPrefixFn)"
+    [ -z "$uses_suffix" ]  || printf "\n%s\n" "$(setEnvSuffixFn)"
+    printf "\n%s" "int main(int argc, char **argv) {"
+    printf "\n%s" "$main"
+    printf "%s" "}"
+}
+
+# prefix ENV SEP VAL
+setEnvPrefix() {
+    local env=$(escapeStringLiteral "$1")
+    local sep=$(escapeStringLiteral "$2")
+    local val=$(escapeStringLiteral "$3")
+    printf "%s" "set_env_prefix(\"$env\", \"$sep\", \"$val\");"
+}
+
+# suffix ENV SEP VAL
+setEnvSuffix() {
+    local env=$(escapeStringLiteral "$1")
+    local sep=$(escapeStringLiteral "$2")
+    local val=$(escapeStringLiteral "$3")
+    printf "%s" "set_env_suffix(\"$env\", \"$sep\", \"$val\");"
 }
 
 # setEnv KEY VALUE
 setEnv() {
     local key=$(escapeStringLiteral "$1")
     local value=$(escapeStringLiteral "$2")
-    printf "%s" "putenv(\"${key}=${value}\");"
+    printf "%s" "putenv(\"$key=$value\");"
 }
 
 # setDefaultEnv KEY VALUE
