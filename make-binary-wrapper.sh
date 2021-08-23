@@ -18,7 +18,7 @@
 # To troubleshoot a binary wrapper after you compiled it,
 # use the `strings` command or open the binary file in a text editor.
 makeBinaryWrapper() {
-    makeDocumentedCWrapper "$1" "${@:3}" | gcc -Os -x c -o "$2" -
+    makeDocumentedCWrapper "$1" "${@:3}" | gcc -Os -s -x c -o "$2" -
 }
 
 # Generate source code for the wrapper in such a way that the wrapper source code
@@ -77,11 +77,7 @@ makeCWrapper() {
             printf "%s\n" "    #error makeCWrapper did not understand argument ${p}"
         fi
     done
-    [ -z ${flagsBefore+"1"} ] || {
-        flagsBefore=("$flagsBefore")
-        main="$main"$'\n'$(addFlags $flagsBefore)$'\n'$'\n'
-    }
-
+    [ -z "$flagsBefore" ] || main="$main"$'\n'$(addFlags $flagsBefore)$'\n'$'\n'
     main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
     main="$main    return execv(\"${executable}\", argv);"$'\n'
 
