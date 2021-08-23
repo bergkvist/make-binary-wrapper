@@ -61,6 +61,10 @@ makeCWrapper() {
             uses_suffix=1
             uses_concat3=1
             n=$((n + 3))
+        elif [[ "$p" == "--add-flags" ]]; then
+            flags="${params[$((n + 1))]}"
+            flagsBefore="$flagsBefore $flags"
+            n=$((n + 1))
         elif [[ "$p" == "--argv0" ]]; then
             argv0=$(escapeStringLiteral "${params[$((n + 1))]}")
             n=$((n + 1))
@@ -69,6 +73,10 @@ makeCWrapper() {
             printf "%s\n" "    #error makeCWrapper did not understand argument ${p}"
         fi
     done
+    [ -z ${flagsBefore+"1"} ] || {
+        flagsBefore=("$flagsBefore")
+        main="$main"$'\n'$(includeFlags $flagsBefore)$'\n'$'\n'
+    }
     [ -z ${argv0+"1"} ] || {
         main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
     }
@@ -83,6 +91,24 @@ makeCWrapper() {
     printf "\n%s" "int main(int argc, char **argv) {"
     printf "\n%s" "$main"
     printf "%s" "}"
+}
+
+includeFlags() {
+    local result n flag flags
+    local var="argv_tmp"
+    flags=("$@")
+    for ((n = 0; n < ${#flags[*]}; n += 1)); do
+        flag=$(escapeStringLiteral "${flags[((n))]}")
+        result="$result    $var[$((n+1))] = \"$flag\";"$'\n'
+    done
+    printf "    %s\n" "char **$var = malloc(sizeof(*$var) * ($((n+1)) + argc));"
+    printf "    %s\n" "$var[0] = argv[0];"
+    printf "%s" "$result"
+    printf "    %s\n" "for (int i = 1; i < argc; ++i) {"
+    printf "    %s\n" "    $var[$n + i] = argv[i];"
+    printf "    %s\n" "}"
+    printf "    %s\n" "$var[$n + argc] = NULL;"
+    printf "    %s\n" "argv = $var;"
 }
 
 # prefix ENV SEP VAL
