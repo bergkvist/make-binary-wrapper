@@ -4,13 +4,17 @@
 
 # ARGS:
 # --argv0       NAME    : set name of executed process to NAME
-#                         (defaults to EXECUTABLE)
+#                         (otherwise it’s called …-wrapped)
 # --set         VAR VAL : add VAR with value VAL to the executable’s
 #                         environment
 # --set-default VAR VAL : like --set, but only adds VAR if not already set in
 #                         the environment
 # --unset       VAR     : remove VAR from the environment
-#
+# --add-flags   FLAGS   : add FLAGS to invocation of executable
+
+# --prefix          ENV SEP VAL   : suffix/prefix ENV with VAL, separated by SEP
+# --suffix
+
 # To troubleshoot a binary wrapper after you compiled it,
 # use the `strings` command or open the binary file in a text editor.
 makeBinaryWrapper() {
