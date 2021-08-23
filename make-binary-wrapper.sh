@@ -77,7 +77,7 @@ makeCWrapper() {
             printf "%s\n" "    #error makeCWrapper did not understand argument ${p}"
         fi
     done
-    [ -z "$flagsBefore" ] || main="$main"$'\n'$(addFlags $flagsBefore)$'\n'$'\n'
+    [ -z "$flagsBefore" ] || main="$main"${main:+$'\n'}$(addFlags $flagsBefore)$'\n'$'\n'
     main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
     main="$main    return execv(\"${executable}\", argv);"$'\n'
 
@@ -88,7 +88,7 @@ makeCWrapper() {
     [ -z "$uses_suffix" ]  || printf "\n%s\n" "$(setEnvSuffixFn)"
     printf "\n%s" "int main(int argc, char **argv) {"
     printf "\n%s" "$main"
-    printf "%s" "}"
+    printf "%s\n" "}"
 }
 
 addFlags() {
@@ -96,7 +96,7 @@ addFlags() {
     local var="argv_tmp"
     flags=("$@")
     for ((n = 0; n < ${#flags[*]}; n += 1)); do
-        flag=$(escapeStringLiteral "${flags[((n))]}")
+        flag=$(escapeStringLiteral "${flags[$n]}")
         result="$result    $var[$((n+1))] = \"$flag\";"$'\n'
     done
     printf "    %s\n" "char **$var = malloc(sizeof(*$var) * ($((n+1)) + argc));"
