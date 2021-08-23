@@ -104,3 +104,17 @@ escapeStringLiteral() {
     result=${result//$'\r'/"\r"}
     printf "%s" "$result"
 }
+
+concat3Fn() {
+    printf "%s\n" 'char *concat3(char *x, char *y, char *z) {'
+    printf "%s\n" '    int xn = 0; while(x[++xn]);'
+    printf "%s\n" '    int yn = 0; while(y[++yn]);'
+    printf "%s\n" '    int zn = 0; while(z[++zn]);'
+    printf "%s\n" '    char *res = malloc(sizeof(*res)*(xn + yn + zn + 1));'
+    printf "%s\n" '    for (int i = 0; i < xn; ++i) res[i] = x[i];'
+    printf "%s\n" '    for (int i = 0; i < yn; ++i) res[xn+i] = y[i];'
+    printf "%s\n" '    for (int i = 0; i < zn; ++i) res[xn+yn+i] = z[i];'
+    printf "%s\n" "    res[xn+yn+zn] = '\0';"
+    printf "%s\n" '    return res;'
+    printf "%s\n" '}'
+}
