@@ -83,6 +83,7 @@ makeCWrapper() {
 
     printf "%s\n" "#include <unistd.h>"
     printf "%s\n" "#include <stdlib.h>"
+    [ -z "$uses_concat3" ] || printf "%s\n" "#include <string.h>"
     [ -z "$uses_concat3" ] || printf "\n%s\n" "$(concat3Fn)"
     [ -z "$uses_prefix" ]  || printf "\n%s\n" "$(setEnvPrefixFn)"
     [ -z "$uses_suffix" ]  || printf "\n%s\n" "$(setEnvSuffixFn)"
@@ -165,9 +166,9 @@ escapeStringLiteral() {
 
 concat3Fn() {
     printf "%s\n" 'char *concat3(char *x, char *y, char *z) {'
-    printf "%s\n" '    int xn = 0; while(x[++xn]);'
-    printf "%s\n" '    int yn = 0; while(y[++yn]);'
-    printf "%s\n" '    int zn = 0; while(z[++zn]);'
+    printf "%s\n" '    int xn = strlen(x);'
+    printf "%s\n" '    int yn = strlen(y);'
+    printf "%s\n" '    int zn = strlen(z);'
     printf "%s\n" '    char *res = malloc(sizeof(*res)*(xn + yn + zn + 1));'
     printf "%s\n" '    for (int i = 0; i < xn; ++i) res[i] = x[i];'
     printf "%s\n" '    for (int i = 0; i < yn; ++i) res[xn+i] = y[i];'
