@@ -18,7 +18,7 @@
 # To troubleshoot a binary wrapper after you compiled it,
 # use the `strings` command or open the binary file in a text editor.
 makeBinaryWrapper() {
-    makeDocumentedCWrapper "$1" "${@:3}" | gcc -Os -s -x c -o "$2" -
+    makeDocumentedCWrapper "$1" "${@:3}" | gcc -Os -x c -o "$2" -
 }
 
 # Generate source code for the wrapper in such a way that the wrapper source code
@@ -26,8 +26,9 @@ makeBinaryWrapper() {
 # makeDocumentedCWrapper EXECUTABLE ARGS
 # ARGS: same as makeBinaryWrapper
 makeDocumentedCWrapper() {
-    local src=$(makeCWrapper "$@")
-    local docs=$(documentationString "$src")
+    local src docs
+    src=$(makeCWrapper "$@")
+    docs=$(documentationString "$src")
     printf "%s\n" "$src"
     printf "\n%s\n" "$docs"
 }
@@ -35,9 +36,9 @@ makeDocumentedCWrapper() {
 # makeCWrapper EXECUTABLE ARGS
 # ARGS: same as makeBinaryWrapper
 makeCWrapper() {
-    local argv0 n params cmd main flagsBefore flags
-    local executable=$(escapeStringLiteral "$1")
-    local params=("$@")
+    local argv0 n params cmd main flagsBefore flags executable params
+    executable=$(escapeStringLiteral "$1")
+    params=("$@")
     
     for ((n = 1; n < ${#params[*]}; n += 1)); do
         p="${params[$n]}"
@@ -93,63 +94,69 @@ makeCWrapper() {
 }
 
 addFlags() {
-    local result n flag flags
-    local var="argv_tmp"
+    local result n flag flags var
+    var="argv_tmp"
     flags=("$@")
     for ((n = 0; n < ${#flags[*]}; n += 1)); do
         flag=$(escapeStringLiteral "${flags[$n]}")
-        result="$result    $var[$((n+1))] = \"$flag\";"$'\n'
+        result="$result    ${var}[$((n+1))] = \"$flag\";"$'\n'
     done
     printf "    %s\n" "char **$var = malloc(sizeof(*$var) * ($((n+1)) + argc));"
-    printf "    %s\n" "$var[0] = argv[0];"
+    printf "    %s\n" "${var}[0] = argv[0];"
     printf "%s" "$result"
     printf "    %s\n" "for (int i = 1; i < argc; ++i) {"
-    printf "    %s\n" "    $var[$n + i] = argv[i];"
+    printf "    %s\n" "    ${var}[$n + i] = argv[i];"
     printf "    %s\n" "}"
-    printf "    %s\n" "$var[$n + argc] = NULL;"
+    printf "    %s\n" "${var}[$n + argc] = NULL;"
     printf "    %s\n" "argv = $var;"
 }
 
 # prefix ENV SEP VAL
 setEnvPrefix() {
-    local env=$(escapeStringLiteral "$1")
-    local sep=$(escapeStringLiteral "$2")
-    local val=$(escapeStringLiteral "$3")
+    local env sep val
+    env=$(escapeStringLiteral "$1")
+    sep=$(escapeStringLiteral "$2")
+    val=$(escapeStringLiteral "$3")
     printf "%s" "set_env_prefix(\"$env\", \"$sep\", \"$val\");"
 }
 
 # suffix ENV SEP VAL
 setEnvSuffix() {
-    local env=$(escapeStringLiteral "$1")
-    local sep=$(escapeStringLiteral "$2")
-    local val=$(escapeStringLiteral "$3")
+    local env sep val
+    env=$(escapeStringLiteral "$1")
+    sep=$(escapeStringLiteral "$2")
+    val=$(escapeStringLiteral "$3")
     printf "%s" "set_env_suffix(\"$env\", \"$sep\", \"$val\");"
 }
 
 # setEnv KEY VALUE
 setEnv() {
-    local key=$(escapeStringLiteral "$1")
-    local value=$(escapeStringLiteral "$2")
+    local key value
+    key=$(escapeStringLiteral "$1")
+    value=$(escapeStringLiteral "$2")
     printf "%s" "putenv(\"$key=$value\");"
 }
 
 # setDefaultEnv KEY VALUE
 setDefaultEnv() {
-    local key=$(escapeStringLiteral "$1")
-    local value=$(escapeStringLiteral "$2")
+    local key value
+    key=$(escapeStringLiteral "$1")
+    value=$(escapeStringLiteral "$2")
     printf "%s" "setenv(\"$key\", \"$value\", 0);"
 }
 
 # unsetEnv KEY
 unsetEnv() {
-    local key=$(escapeStringLiteral "$1")
+    local key
+    key=$(escapeStringLiteral "$1")
     printf "%s" "unsetenv(\"$key\");"
 }
 
 # Put the entire source code into const char* SOURCE_CODE to make it readable after compilation.
 # documentationString SOURCE_CODE
 documentationString() {
-    local docs=$(escapeStringLiteral $'\n----------\n// This binary wrapper was compiled from the following generated C-code:\n'"$1"$'\n----------\n')
+    local docs
+    docs=$(escapeStringLiteral $'\n----------\n// This binary wrapper was compiled from the following generated C-code:\n'"$1"$'\n----------\n')
     printf "%s" "const char * SOURCE_CODE = \"$docs\";"
 }
 
