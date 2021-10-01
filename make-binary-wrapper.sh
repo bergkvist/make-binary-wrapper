@@ -179,33 +179,39 @@ escapeStringLiteral() {
 }
 
 concat3Fn() {
-    printf "%s\n" 'char *concat3(char *x, char *y, char *z) {'
-    printf "%s\n" '    int xn = strlen(x);'
-    printf "%s\n" '    int yn = strlen(y);'
-    printf "%s\n" '    int zn = strlen(z);'
-    printf "%s\n" '    char *res = malloc(sizeof(*res)*(xn + yn + zn + 1));'
-    printf "%s\n" '    for (int i = 0; i < xn; ++i) res[i] = x[i];'
-    printf "%s\n" '    for (int i = 0; i < yn; ++i) res[xn+i] = y[i];'
-    printf "%s\n" '    for (int i = 0; i < zn; ++i) res[xn+yn+i] = z[i];'
-    printf "%s\n" "    res[xn+yn+zn] = '\0';"
-    printf "%s\n" '    return res;'
-    printf "%s\n" '}'
+    printf '%s' "\
+char *concat3(char *x, char *y, char *z) {
+    int xn = strlen(x);
+    int yn = strlen(y);
+    int zn = strlen(z);
+    char *res = malloc(sizeof(*res)*(xn + yn + zn + 1));
+    strncpy(res, x, xn);
+    strncpy(res + xn, y, yn);
+    strncpy(res + xn + yn, z, zn);
+    res[xn + yn + zn] = '\0';
+    return res;
+}
+"
 }
 
 setEnvPrefixFn() {
-    printf "%s\n" 'void set_env_prefix(char *env, char *sep, char *val) {'
-    printf "%s\n" '    char *existing = getenv(env);'
-    printf "%s\n" '    if (existing) val = concat3(val, sep, existing);'
-    printf "%s\n" '    setenv(env, val, 1);'
-    printf "%s\n" '    if (existing) free(val);'
-    printf "%s\n" '}'
+    printf '%s' "\
+void set_env_prefix(char *env, char *sep, char *val) {
+    char *existing = getenv(env);
+    if (existing) val = concat3(val, sep, existing);
+    setenv(env, val, 1);
+    if (existing) free(val);
+}
+"
 }
 
 setEnvSuffixFn() {
-    printf "%s\n" 'void set_env_suffix(char *env, char *sep, char *val) {'
-    printf "%s\n" '    char *existing = getenv(env);'
-    printf "%s\n" '    if (existing) val = concat3(existing, sep, val);'
-    printf "%s\n" '    setenv(env, val, 1);'
-    printf "%s\n" '    if (existing) free(val);'
-    printf "%s\n" '}'
+    printf '%s' "\
+void set_env_suffix(char *env, char *sep, char *val) {
+    char *existing = getenv(env);
+    if (existing) val = concat3(existing, sep, val);
+    setenv(env, val, 1);
+    if (existing) free(val);
+}
+"
 }
