@@ -29,8 +29,8 @@ makeDocumentedCWrapper() {
     local src docs
     src=$(makeCWrapper "$@")
     docs=$(documentationString "$src")
-    printf "%s\n" "$src"
-    printf "\n%s\n" "$docs"
+    printf '%s\n\n' "$src"
+    printf '%s\n' "$docs"
 }
 
 # makeCWrapper EXECUTABLE ARGS
@@ -89,15 +89,15 @@ makeCWrapper() {
     main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
     main="$main    return execv(\"${executable}\", argv);"$'\n'
 
-    printf "%s\n" "#include <unistd.h>"
-    printf "%s\n" "#include <stdlib.h>"
-    [ -z "$uses_concat3" ] || printf "%s\n" "#include <string.h>"
-    [ -z "$uses_concat3" ] || printf "\n%s\n" "$(concat3Fn)"
-    [ -z "$uses_prefix" ]  || printf "\n%s\n" "$(setEnvPrefixFn)"
-    [ -z "$uses_suffix" ]  || printf "\n%s\n" "$(setEnvSuffixFn)"
-    printf "\n%s" "int main(int argc, char **argv) {"
-    printf "\n%s" "$main"
-    printf "%s\n" "}"
+    printf '%s\n' "#include <unistd.h>"
+    printf '%s\n' "#include <stdlib.h>"
+    [ -z "$uses_concat3" ] || printf '%s\n' "#include <string.h>"
+    [ -z "$uses_concat3" ] || printf '\n%s\n' "$(concat3Fn)"
+    [ -z "$uses_prefix" ]  || printf '\n%s\n' "$(setEnvPrefixFn)"
+    [ -z "$uses_suffix" ]  || printf '\n%s\n' "$(setEnvSuffixFn)"
+    printf '\n%s' "int main(int argc, char **argv) {"
+    printf '\n%s' "$main"
+    printf '%s\n' "}"
 }
 
 addFlags() {
@@ -108,14 +108,14 @@ addFlags() {
         flag=$(escapeStringLiteral "${flags[$n]}")
         result="$result    ${var}[$((n+1))] = \"$flag\";"$'\n'
     done
-    printf "    %s\n" "char **$var = malloc(sizeof(*$var) * ($((n+1)) + argc));"
-    printf "    %s\n" "${var}[0] = argv[0];"
-    printf "%s" "$result"
-    printf "    %s\n" "for (int i = 1; i < argc; ++i) {"
-    printf "    %s\n" "    ${var}[$n + i] = argv[i];"
-    printf "    %s\n" "}"
-    printf "    %s\n" "${var}[$n + argc] = NULL;"
-    printf "    %s\n" "argv = $var;"
+    printf '    %s\n' "char **$var = malloc(sizeof(*$var) * ($((n+1)) + argc));"
+    printf '    %s\n' "${var}[0] = argv[0];"
+    printf '%s' "$result"
+    printf '    %s\n' "for (int i = 1; i < argc; ++i) {"
+    printf '    %s\n' "    ${var}[$n + i] = argv[i];"
+    printf '    %s\n' "}"
+    printf '    %s\n' "${var}[$n + argc] = NULL;"
+    printf '    %s\n' "argv = $var;"
 }
 
 # prefix ENV SEP VAL
@@ -124,7 +124,7 @@ setEnvPrefix() {
     env=$(escapeStringLiteral "$1")
     sep=$(escapeStringLiteral "$2")
     val=$(escapeStringLiteral "$3")
-    printf "%s" "set_env_prefix(\"$env\", \"$sep\", \"$val\");"
+    printf '%s' "set_env_prefix(\"$env\", \"$sep\", \"$val\");"
 }
 
 # suffix ENV SEP VAL
@@ -133,7 +133,7 @@ setEnvSuffix() {
     env=$(escapeStringLiteral "$1")
     sep=$(escapeStringLiteral "$2")
     val=$(escapeStringLiteral "$3")
-    printf "%s" "set_env_suffix(\"$env\", \"$sep\", \"$val\");"
+    printf '%s' "set_env_suffix(\"$env\", \"$sep\", \"$val\");"
 }
 
 # setEnv KEY VALUE
@@ -141,7 +141,7 @@ setEnv() {
     local key value
     key=$(escapeStringLiteral "$1")
     value=$(escapeStringLiteral "$2")
-    printf "%s" "putenv(\"$key=$value\");"
+    printf '%s' "putenv(\"$key=$value\");"
 }
 
 # setDefaultEnv KEY VALUE
@@ -149,14 +149,14 @@ setDefaultEnv() {
     local key value
     key=$(escapeStringLiteral "$1")
     value=$(escapeStringLiteral "$2")
-    printf "%s" "setenv(\"$key\", \"$value\", 0);"
+    printf '%s' "setenv(\"$key\", \"$value\", 0);"
 }
 
 # unsetEnv KEY
 unsetEnv() {
     local key
     key=$(escapeStringLiteral "$1")
-    printf "%s" "unsetenv(\"$key\");"
+    printf '%s' "unsetenv(\"$key\");"
 }
 
 # Put the entire source code into const char* SOURCE_CODE to make it readable after compilation.
@@ -164,7 +164,7 @@ unsetEnv() {
 documentationString() {
     local docs
     docs=$(escapeStringLiteral $'\n----------\n// This binary wrapper was compiled from the following generated C-code:\n'"$1"$'\n----------\n')
-    printf "%s" "const char * SOURCE_CODE = \"$docs\";"
+    printf '%s' "const char * SOURCE_CODE = \"$docs\";"
 }
 
 # Makes it safe to insert STRING within quotes in a C String Literal.
@@ -175,7 +175,7 @@ escapeStringLiteral() {
     result=${result//\"/'\"'}
     result=${result//$'\n'/"\n"}
     result=${result//$'\r'/"\r"}
-    printf "%s" "$result"
+    printf '%s' "$result"
 }
 
 concat3Fn() {
