@@ -85,6 +85,7 @@ makeCWrapper() {
             ;;
         esac
     done
+    # shellcheck disable=SC2086
     [ -z "$flagsBefore" ] || main="$main"${main:+$'\n'}$(addFlags $flagsBefore)$'\n'$'\n'
     main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
     main="$main    return execv(\"${executable}\", argv);"$'\n'
