@@ -39,44 +39,51 @@ makeCWrapper() {
     local argv0 n params cmd main flagsBefore flags executable params
     executable=$(escapeStringLiteral "$1")
     params=("$@")
-    
     for ((n = 1; n < ${#params[*]}; n += 1)); do
-        p="${params[$n]}"
-        if [[ "$p" == "--set" ]]; then
-            cmd=$(setEnv "${params[$((n + 1))]}" "${params[$((n + 2))]}")
-            main="$main    $cmd"$'\n'
-            n=$((n + 2))
-        elif [[ "$p" == "--set-default" ]]; then
-            cmd=$(setDefaultEnv "${params[$((n + 1))]}" "${params[$((n + 2))]}")
-            main="$main    $cmd"$'\n'
-            n=$((n + 2))
-        elif [[ "$p" == "--unset" ]]; then
-            cmd=$(unsetEnv "${params[$((n + 1))]}")
-            main="$main    $cmd"$'\n'
-            n=$((n + 1))
-        elif [[ "$p" == "--prefix" ]]; then
-            cmd=$(setEnvPrefix "${params[$((n + 1))]}" "${params[$((n + 2))]}" "${params[$((n + 3))]}")
-            main="$main    $cmd"$'\n'
-            uses_prefix=1
-            uses_concat3=1
-            n=$((n + 3))
-        elif [[ "$p" == "--suffix" ]]; then
-            cmd=$(setEnvSuffix "${params[$((n + 1))]}" "${params[$((n + 2))]}" "${params[$((n + 3))]}")
-            main="$main    $cmd"$'\n'
-            uses_suffix=1
-            uses_concat3=1
-            n=$((n + 3))
-        elif [[ "$p" == "--add-flags" ]]; then
-            flags="${params[$((n + 1))]}"
-            flagsBefore="$flagsBefore $flags"
-            n=$((n + 1))
-        elif [[ "$p" == "--argv0" ]]; then
-            argv0=$(escapeStringLiteral "${params[$((n + 1))]}")
-            n=$((n + 1))
-        else
-            # Using an error macro, we will make sure the compiler gives an understandable error message
-            printf "%s\n" "    #error makeCWrapper did not understand argument ${p}"
-        fi
+        p="${params[n]}"
+        case $p in
+            --set)
+                cmd=$(setEnv "${params[n + 1]}" "${params[n + 2]}")
+                main="$main    $cmd"$'\n'
+                n=$((n + 2))
+            ;;
+            --set-default)
+                cmd=$(setDefaultEnv "${params[n + 1]}" "${params[n + 2]}")
+                main="$main    $cmd"$'\n'
+                n=$((n + 2))
+            ;;
+            --unset)
+                cmd=$(unsetEnv "${params[n + 1]}")
+                main="$main    $cmd"$'\n'
+                n=$((n + 1))
+            ;;
+            --prefix)
+                cmd=$(setEnvPrefix "${params[n + 1]}" "${params[n + 2]}" "${params[n + 3]}")
+                main="$main    $cmd"$'\n'
+                uses_prefix=1
+                uses_concat3=1
+                n=$((n + 3))
+            ;;
+            --suffix)
+                cmd=$(setEnvSuffix "${params[n + 1]}" "${params[n + 2]}" "${params[n + 3]}")
+                main="$main    $cmd"$'\n'
+                uses_suffix=1
+                uses_concat3=1
+                n=$((n + 3))
+            ;;
+            --add-flags)
+                flags="${params[n + 1]}"
+                flagsBefore="$flagsBefore $flags"
+                n=$((n + 1))
+            ;;
+            --argv0)
+                argv0=$(escapeStringLiteral "${params[n + 1]}")
+                n=$((n + 1))
+            ;;
+            *) # Using an error macro, we will make sure the compiler gives an understandable error message
+                printf '%s\n' "    #error makeCWrapper did not understand argument ${p}"
+            ;;
+        esac
     done
     [ -z "$flagsBefore" ] || main="$main"${main:+$'\n'}$(addFlags $flagsBefore)$'\n'$'\n'
     main="$main    argv[0] = \"${argv0:-${executable}}\";"$'\n'
