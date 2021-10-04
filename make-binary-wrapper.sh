@@ -37,6 +37,7 @@ makeDocumentedCWrapper() {
 # ARGS: same as makeBinaryWrapper
 makeCWrapper() {
     local argv0 n params cmd main flagsBefore flags executable params length
+    local uses_prefix uses_suffix uses_concat3
     executable=$(escapeStringLiteral "$1")
     params=("$@")
     length=${#params[*]}
